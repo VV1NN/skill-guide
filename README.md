@@ -1,10 +1,31 @@
 # skill-guide
 
 > A prompt-driven skill navigator for Claude Code -- scans your installed skills and explains them in your language.
+>
+> 你的 Claude Code 技能導覽員 -- 掃描已安裝的 skills，用你的語言解釋給你聽。裝了就會用，不再盲目 clone。
 
 **Status: MVP** -- Tested with 10 skills + 15 commands. Core features work. See [Known Limitations](#known-limitations).
 
-[繁體中文](README.zh-TW.md)
+[繁體中文完整說明](README.zh-TW.md) | English (this page)
+
+---
+
+## TL;DR — 這是什麼？
+
+你從 GitHub clone 了一堆 Claude Code skills，但不知道怎麼用？`/guide` 幫你：
+
+```
+/guide              → 列出所有已安裝的 skills，分類說明，告訴你從哪開始
+/guide hunt         → 用白話解釋某個 skill 怎麼用
+/guide 我想找漏洞    → 根據你的目標，推薦該用哪些工具、什麼順序
+/guide --check      → 檢查你的環境缺少哪些工具
+/guide --diff <repo> → 比較你跟某個 skill 套件差了什麼
+```
+
+安裝只要一行：
+```bash
+git clone https://github.com/VV1NN/skill-guide.git && cd skill-guide && ./install.sh
+```
 
 ---
 
