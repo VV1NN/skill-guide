@@ -83,16 +83,60 @@ Present a complete guide with these sections:
 - Y slash commands available (type `/command` to use)
 
 **B) Skills vs Commands -- What's the difference?**
-Explain in one paragraph: Skills load automatically when Claude detects relevant context. Slash commands need you to type `/command-name` to activate. Users don't need to do anything to "turn on" skills.
+Explain clearly with a visual comparison box:
+
+```
++-------------------------------+-------------------------------+
+|  SKILLS (背景知識)              |  COMMANDS (動作指令)            |
+|  Auto-loaded, no action needed |  You type /command to trigger  |
++-------------------------------+-------------------------------+
+|  Like a textbook on your desk  |  Like a tool you pick up       |
+|  Claude reads it when relevant |  You decide when to use it     |
+|  You do NOTHING to activate    |  You MUST type the command     |
++-------------------------------+-------------------------------+
+```
+
+Then list them separately:
+
+**Your Skills (auto-loaded):**
+List each skill with a marker like `[SKILL]` prefix and one-line description.
+
+**Your Commands (type to use):**
+List each command with the actual `/command` syntax and one-line description.
+
+This separation is critical -- many users don't understand the difference. Make it visually impossible to confuse.
 
 **C) Category Map**
-Group all skills and commands by purpose. Show a visual workflow:
 
-```
-[Phase 1: Preparation] --> [Phase 2: Execution] --> [Phase 3: Validation] --> [Phase 4: Output]
-```
+IMPORTANT: Do NOT use a hardcoded workflow like "recon → hunt → validate → report". The user may have skills from completely different domains (security, accounting, design, DevOps, etc.).
 
-Under each phase, list relevant skills and commands with one-line descriptions.
+Instead, dynamically categorize based on what is actually installed:
+
+1. Read the name and description of every scanned skill and command
+2. Group them into natural categories based on their actual purpose (e.g., "Security / Bug Bounty", "Finance / Accounting", "Development Tools", "Writing / Documentation", etc.)
+3. If skills within a category have a natural workflow order, show it with arrows
+4. If they don't have a sequential relationship, just list them as a group
+
+For each category, use this format for EVERY item:
+- `[SKILL] skill-name` — description (auto-loaded, you do nothing)
+- `[CMD] /command-name` — description (you type this to trigger)
+
+Never list a skill or command without its `[SKILL]` or `[CMD]` prefix.
+
+Example with mixed domains:
+```
+## Security / Bug Bounty
+[Preparation] → [Recon] → [Hunting] → [Validation] → [Reporting]
+...items...
+
+## Accounting
+[CMD] /invoice-scan — ...
+[SKILL] tax-rules — ...
+
+## Development Tools
+[CMD] /lint — ...
+[SKILL] code-review — ...
+```
 
 **D) Complete Command Reference**
 A table with columns: Command | What it does | When to use it | Example
