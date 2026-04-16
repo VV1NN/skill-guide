@@ -106,37 +106,78 @@ List each command with the actual `/command` syntax and one-line description.
 
 This separation is critical -- many users don't understand the difference. Make it visually impossible to confuse.
 
-**C) Category Map**
+**C) Skill-Centric Map (以 Skill 為中心的導覽)**
 
-IMPORTANT: Do NOT use a hardcoded workflow like "recon → hunt → validate → report". The user may have skills from completely different domains (security, accounting, design, DevOps, etc.).
+IMPORTANT: Organize the output by SKILL, not by workflow phase. Each skill is a section header, and the related commands are listed underneath it. This way users see "I have this skill → here's what I can DO with it".
 
-Instead, dynamically categorize based on what is actually installed:
+Do NOT use a hardcoded workflow. The user may have skills from completely different domains.
 
-1. Read the name and description of every scanned skill and command
-2. Group them into natural categories based on their actual purpose (e.g., "Security / Bug Bounty", "Finance / Accounting", "Development Tools", "Writing / Documentation", etc.)
-3. If skills within a category have a natural workflow order, show it with arrows
-4. If they don't have a sequential relationship, just list them as a group
+For each installed skill:
 
-For each category, use this format for EVERY item:
-- `[SKILL] skill-name` — description (auto-loaded, you do nothing)
-- `[CMD] /command-name` — description (you type this to trigger)
+1. Show the skill name and a one-line description
+2. List all commands that are related to this skill (match by reading the skill's description and each command's description — group commands whose purpose falls within the skill's domain)
+3. If the related commands have a natural order, show a mini workflow
+4. If a command doesn't clearly belong to any skill, group it under "General / Utilities" at the end
 
-Never list a skill or command without its `[SKILL]` or `[CMD]` prefix.
+Format for each skill section:
+
+```
+---
+### skill-name [SKILL — auto-loaded]
+One-line description of what this skill knows about.
+
+Related commands (type these to take action):
+  /command1 <args>   — what it does
+  /command2 <args>   — what it does
+
+Suggested flow: /command1 → /command2 → /command3
+---
+```
 
 Example with mixed domains:
-```
-## Security / Bug Bounty
-[Preparation] → [Recon] → [Hunting] → [Validation] → [Reporting]
-...items...
 
-## Accounting
-[CMD] /invoice-scan — ...
-[SKILL] tax-rules — ...
-
-## Development Tools
-[CMD] /lint — ...
-[SKILL] code-review — ...
 ```
+---
+### bug-bounty [SKILL — auto-loaded]
+Complete vulnerability hunting knowledge base.
+
+Related commands:
+  /scope target.com          — confirm target is in scope
+  /intel target.com          — gather intel on target
+  /hunt target.com           — actively hunt for vulnerabilities
+  /chain                     — chain small bugs into bigger ones
+
+Suggested flow: /scope → /intel → /hunt → /chain
+---
+
+### web2-recon [SKILL — auto-loaded]
+Recon methodology for web targets.
+
+Related commands:
+  /recon target.com          — run full recon pipeline
+  /surface target.com        — rank attack surface from recon output
+
+Suggested flow: /recon → /surface
+---
+
+### invoice-organizer [SKILL — auto-loaded]
+Automatically organizes invoices for tax prep.
+
+Related commands:
+  /invoice-scan ./receipts   — scan and organize invoice files
+
+(no sequential flow — single action)
+---
+
+### General / Utilities
+  /guide                     — skill navigator (this)
+  /autopilot target.com      — fully automated workflow
+  /remember                  — log a finding to memory
+  /resume target.com         — continue a previous session
+---
+```
+
+This structure makes it immediately clear: "This SKILL gives Claude knowledge about X. To actually DO something, type these /commands."
 
 **D) Complete Command Reference**
 A table with columns: Command | What it does | When to use it | Example

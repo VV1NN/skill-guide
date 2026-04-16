@@ -41,7 +41,7 @@ For each command .md, read the frontmatter `description` field. The filename (wi
 Scan all installed skills and commands, then present:
 
 1. **Summary** -- How many skills, how many commands, grouped by category
-2. **Category map** -- Dynamically group skills by their actual purpose (security, development, finance, writing, etc.). Do NOT assume all skills belong to the same domain. Only show workflow arrows within a category if the skills have a natural sequential order. Always prefix each item with `[SKILL]` or `[CMD]`.
+2. **Skill-centric map** -- Organize by SKILL, not by workflow phase. Each skill becomes a section header with its related commands listed underneath. This answers: "I have this skill → what can I DO with it?" Commands that don't belong to any skill go under "General / Utilities".
 3. **Complete reference table** -- Each command with a one-line plain-language description
 4. **"Where do I start?"** -- Based on the types of skills installed, suggest a concrete first step
 
