@@ -28,32 +28,43 @@ bash -c '
 # Scan user-level skills
 for f in ~/.claude/skills/*/SKILL.md; do
   [ -f "$f" ] || continue
+  [ -s "$f" ] || continue  # skip empty files
   name=$(grep "^name:" "$f" | head -1 | sed "s/name: *//")
+  # Fallback: use directory name if no name field
+  [ -z "$name" ] && name=$(basename "$(dirname "$f")")
   desc=$(grep "^description:" "$f" | head -1 | sed "s/description: *//" | cut -c1-150)
+  [ -z "$desc" ] && desc="(no description available)"
   echo "SKILL|$name|$desc"
 done
 
 # Scan project-level skills
 for f in .claude/skills/*/SKILL.md; do
   [ -f "$f" ] || continue
+  [ -s "$f" ] || continue
   name=$(grep "^name:" "$f" | head -1 | sed "s/name: *//")
+  [ -z "$name" ] && name=$(basename "$(dirname "$f")")
   desc=$(grep "^description:" "$f" | head -1 | sed "s/description: *//" | cut -c1-150)
+  [ -z "$desc" ] && desc="(no description available)"
   echo "SKILL|$name|$desc (project)"
 done
 
 # Scan user-level commands
 for f in ~/.claude/commands/*.md; do
   [ -f "$f" ] || continue
+  [ -s "$f" ] || continue
   cmd=$(basename "$f" .md)
   desc=$(grep "^description:" "$f" | head -1 | sed "s/description: *//" | cut -c1-150)
+  [ -z "$desc" ] && desc="(no description available)"
   echo "CMD|/$cmd|$desc"
 done
 
 # Scan project-level commands
 for f in .claude/commands/*.md; do
   [ -f "$f" ] || continue
+  [ -s "$f" ] || continue
   cmd=$(basename "$f" .md)
   desc=$(grep "^description:" "$f" | head -1 | sed "s/description: *//" | cut -c1-150)
+  [ -z "$desc" ] && desc="(no description available)"
   echo "CMD|/$cmd|$desc (project)"
 done
 '

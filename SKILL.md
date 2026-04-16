@@ -95,8 +95,22 @@ When the user describes a goal (e.g., "I want to find vulnerabilities in a websi
 - If a skill has sub-features or flags, list the most important 3-5, not all of them
 - Use analogies when helpful
 
+## Error Handling & Edge Cases
+
+When scanning skills, handle these gracefully:
+
+- **Missing frontmatter**: If a SKILL.md has no `name:` field, use the directory name instead. If no `description:`, show "(no description available)" and still list it.
+- **Empty or malformed files**: Skip files that are empty or contain no readable content. Do not error out.
+- **Non-standard directory layouts**: If a repo (for --diff) doesn't follow `skills/*/SKILL.md`, try to find SKILL.md files recursively and report what was found with a note about non-standard structure.
+- **Missing tools in --check**: Only report tools as "required" if they appear in executable contexts (code blocks, command examples). Casual mentions in prose should be noted as "referenced" not "required".
+- **Shell compatibility**: All scan scripts must use explicit `bash -c` wrappers because macOS defaults to zsh, which errors on glob no-match and doesn't support `${!var}` indirect expansion.
+- **Private/inaccessible repos in --diff**: If `git clone` fails, report the error clearly and suggest the user check the URL or authentication.
+
 ## Important Notes
 
 - Skills (SKILL.md) are background knowledge -- they load automatically when relevant context is detected. Users do NOT need to "activate" them.
 - Commands (commands/*.md) are user-invoked -- the user must type `/command-name` to trigger them.
 - This is a critical distinction that many users don't understand. Always explain it clearly.
+- This tool is **heuristic, not deterministic**. Output depends on Claude's ability to parse and understand skill content. Results are best-effort.
+- Dependency detection (`--check`) extracts tool names from skill content. It may miss unlisted dependencies or flag optional tools. Always note this caveat in output.
+- Diff comparison (`--diff`) works best with standard directory layouts. Always note if a non-standard structure was detected.
