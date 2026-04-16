@@ -1,6 +1,8 @@
 # skill-guide
 
-**The missing manual for your Claude Code skills.**
+> A prompt-driven skill navigator for Claude Code -- scans your installed skills and explains them in your language.
+
+**Status: MVP** -- Tested with 10 skills + 15 commands. Core features work. See [Known Limitations](#known-limitations).
 
 [繁體中文](README.zh-TW.md)
 
@@ -8,14 +10,31 @@
 
 ## The Problem
 
-The Claude Code skills ecosystem is booming -- there are hundreds of thousands of skills available on GitHub. But after installing them, most users face the same problem:
+The Claude Code skills ecosystem is booming -- hundreds of thousands of skills on GitHub. But after installing them, most users hit the same wall:
 
 - Skills are documented in English (or not documented at all)
 - README files explain *what* a skill can do, not *how* to actually use it
 - You install 10+ skills and have no idea where to start
 - There's no way to see all your installed skills at a glance
 
-**skill-guide** solves this. It's a Claude Code skill that acts as a **navigator** for all your other skills -- scanning what you have installed and explaining everything in your language.
+**skill-guide** is a Claude Code skill that acts as a **navigator** for all your other skills -- it scans what you have installed and explains everything in your language.
+
+## How It Works
+
+skill-guide is **not a traditional program**. It consists of two markdown files that instruct Claude how to behave:
+
+| File | Type | Purpose |
+|------|------|---------|
+| `SKILL.md` | Skill (auto-loaded) | Background knowledge -- Claude automatically understands how to navigate skills when the topic comes up |
+| `commands/guide.md` | Slash Command | The `/guide` command -- explicitly triggered by the user, contains scanning logic and output format |
+
+This means: the quality of output depends on Claude's ability to read your skill files, understand their content, and generate helpful explanations. It works well in practice, but it's heuristic, not deterministic. See [Known Limitations](#known-limitations).
+
+**Skills vs Commands** -- a distinction many users don't understand:
+- **Skills** load automatically when Claude detects relevant context. You don't need to do anything.
+- **Commands** require you to type `/command-name` to trigger them.
+
+skill-guide itself helps explain this distinction for all your other installed skills.
 
 ## What It Does
 
@@ -23,36 +42,25 @@ The Claude Code skills ecosystem is booming -- there are hundreds of thousands o
 |---------|-------------|
 | `/guide` | Scans all installed skills & commands, shows a categorized overview with workflow recommendations |
 | `/guide <name>` | Deep dive into a specific skill -- explains what it does, when to use it, how to use it, with examples |
-| `/guide <goal>` | Describe what you want to do, get a step-by-step plan using your installed skills |
-| `/guide --check` | Scans your skills' dependencies and checks if the required tools/APIs are installed on your system |
-| `/guide --diff <repo>` | Compares your installed skills against a skill pack (GitHub repo) and shows what's missing |
-
-### Key Features
-
-- **Multilingual** -- Responds in whatever language you write in (English, Chinese, Japanese, Spanish, etc.)
-- **Dynamic** -- Reads your actual installed skills at runtime, not a hardcoded list
-- **Workflow-oriented** -- Shows you the recommended order, not just a flat list
-- **Beginner-friendly** -- Explains concepts in plain language with real examples
+| `/guide <goal>` | Describe what you want to do in plain language, get a step-by-step plan using your installed skills |
+| `/guide --check` | Best-effort dependency detection -- extracts tools/APIs mentioned in your skills and checks if they're installed |
+| `/guide --diff <repo>` | Compares your installed skills against a GitHub repo and shows what's missing. Works best with repos that follow standard skill directory layout |
 
 ## Quick Start
 
 ### Option 1: One-line install
 
 ```bash
-git clone https://github.com/vv1n/skill-guide.git && cd skill-guide && ./install.sh
+git clone https://github.com/VV1NN/skill-guide.git && cd skill-guide && ./install.sh
 ```
 
 ### Option 2: Manual install
 
 ```bash
-# Clone the repo
-git clone https://github.com/vv1n/skill-guide.git
+git clone https://github.com/VV1NN/skill-guide.git
 
-# Copy skill
 mkdir -p ~/.claude/skills/skill-guide
 cp skill-guide/SKILL.md ~/.claude/skills/skill-guide/SKILL.md
-
-# Copy command
 cp skill-guide/commands/guide.md ~/.claude/commands/guide.md
 ```
 
@@ -64,7 +72,7 @@ Open Claude Code and type:
 /guide
 ```
 
-You should see a complete overview of all your installed skills in your language.
+You should see a categorized overview of all your installed skills.
 
 ## Usage Examples
 
@@ -108,60 +116,6 @@ How to use:
 
 What comes before: /recon, /surface
 What comes after: /validate, /report
-...
-```
-
-### Dependency Check -- "Am I ready?"
-
-```
-/guide --check
-```
-
-Scans every skill you have installed, extracts the tools and APIs they depend on, and checks your system:
-
-```
-## Environment Health Check
-
-### Tools
-| Tool       | Status        | Required by           |
-|------------|---------------|-----------------------|
-| subfinder  | OK (v2.6.3)   | web2-recon, /recon    |
-| httpx      | OK (v1.3.7)   | web2-recon, /recon    |
-| nuclei     | MISSING       | web2-recon, /recon    |
-| forge      | MISSING       | web3-audit            |
-
-### Environment Variables
-| Variable        | Status  | Required by        |
-|-----------------|---------|---------------------|
-| CHAOS_API_KEY   | OK      | /recon              |
-| SHODAN_API_KEY  | MISSING | /recon (optional)   |
-
-### How to fix
-- nuclei: `go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest`
-- forge: `curl -L https://foundry.paradigm.xyz | bash && foundryup`
-```
-
-### Diff -- "Am I missing anything?"
-
-```
-/guide --diff user/awesome-bb-skills
-```
-
-Compares your installed skills against a GitHub repo (skill pack):
-
-```
-## Skill Diff: you vs user/awesome-bb-skills
-
-| Skill        | In source | Installed | Status  |
-|--------------|-----------|-----------|---------|
-| bug-bounty   | Yes       | Yes       | OK      |
-| api-testing  | Yes       | No        | MISSING |
-
-Missing 2 skills, 1 command.
-
-### Install missing
-  mkdir -p ~/.claude/skills/api-testing
-  cp ...
 ```
 
 ### Recommendation -- "I want to do X"
@@ -170,40 +124,97 @@ Missing 2 skills, 1 command.
 /guide I want to find IDOR vulnerabilities on a website
 ```
 
-Returns a step-by-step plan using your installed skills:
+Returns a step-by-step plan:
 
 ```
 Goal: Find IDOR vulnerabilities on a target website
 
-Step 1: /scope target.com          -- Confirm it's in scope
-Step 2: /recon target.com          -- Map all endpoints
-Step 3: /hunt target.com --vuln-class idor  -- Hunt for IDORs
-Step 4: /validate                  -- Verify the finding is real
-Step 5: /report                    -- Generate submission report
+Step 1: /scope target.com                       -- Confirm it's in scope
+Step 2: /recon target.com                        -- Map all endpoints
+Step 3: /hunt target.com --vuln-class idor       -- Hunt for IDORs
+Step 4: /validate                                -- Verify the finding is real
+Step 5: /report                                  -- Generate submission report
 
 You do NOT need: web3-audit, meme-coin-audit, token-scan
 ```
 
-## How It Works
+### Dependency Check -- "Am I ready?"
 
-skill-guide consists of two files:
+```
+/guide --check
+```
 
-| File | Type | Purpose |
-|------|------|---------|
-| `SKILL.md` | Skill (auto-loaded) | Background knowledge -- Claude automatically understands how to navigate skills when the topic comes up |
-| `commands/guide.md` | Slash Command | The `/guide` command -- explicitly triggered by the user |
+Best-effort scan of tools and APIs your skills depend on:
 
-**Skills vs Commands** -- this is a distinction many users don't understand:
-- **Skills** load automatically when Claude detects relevant context. You don't need to do anything.
-- **Commands** require you to type `/command-name` to trigger them.
+```
+## Environment Health Check
 
-skill-guide itself helps explain this distinction for all your other installed skills.
+| Tool       | Status        | Required by           |
+|------------|---------------|-----------------------|
+| subfinder  | OK (v2.6.3)   | web2-recon, /recon    |
+| nuclei     | MISSING       | web2-recon, /recon    |
+
+### How to fix
+- nuclei: `go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest`
+```
+
+> Note: Dependency detection is heuristic -- it extracts tool names mentioned in skill content. It may miss unlisted dependencies or flag tools that are optional.
+
+### Diff -- "Am I missing anything?"
+
+```
+/guide --diff user/awesome-bb-skills
+```
+
+Compares your skills against a GitHub repo:
+
+```
+| Skill        | In source | Installed | Status  |
+|--------------|-----------|-----------|---------|
+| bug-bounty   | Yes       | Yes       | OK      |
+| api-testing  | Yes       | No        | MISSING |
+```
+
+> Note: Diff works best with repos that use standard `skills/*/SKILL.md` and `commands/*.md` directory layouts. Non-standard structures may not be fully detected.
+
+## Tested With
+
+This skill has been tested in the following environment:
+
+- **10 skills**: bb-methodology, bug-bounty, meme-coin-audit, report-writing, security-arsenal, triage-validation, web2-recon, web2-vuln-classes, web3-audit, skill-guide
+- **15 slash commands**: autopilot, chain, guide, hunt, intel, recon, remember, report, resume, scope, surface, token-scan, triage, validate, web3-audit
+- **Shell**: zsh (macOS default) and bash
+- **All 5 modes tested**: overview, deep dive, recommendation, --check, --diff
+
+### Bugs found and fixed during testing
+
+| Bug | Cause | Fix |
+|-----|-------|-----|
+| `${!var}` env var check failed on macOS | zsh doesn't support bash indirect expansion | Wrapped in explicit `bash -c` |
+| Glob patterns errored when no files matched | zsh treats no-match as error (unlike bash) | Wrapped all scans in explicit `bash -c` |
+
+## Requirements
+
+- Claude Code (CLI, desktop app, or IDE extension)
+- Skills and commands must have frontmatter with `name:` and/or `description:` fields
+- `--diff` mode requires `git` to clone remote repos
+- `--check` mode requires `bash` (for env var detection)
+
+## Known Limitations
+
+- **Prompt-driven, not deterministic**: Output quality depends on Claude's interpretation of your skill files. Results are best-effort and may vary between sessions.
+- **Dependency detection is heuristic**: `--check` extracts tool names mentioned in skill content. It cannot detect dependencies that aren't explicitly named, and may flag optional tools as required.
+- **Diff requires standard layout**: `--diff` looks for `skills/*/SKILL.md` and `commands/*.md`. Repos with non-standard structures may not be fully scanned.
+- **Frontmatter required**: Skills without `name:` or `description:` in their YAML frontmatter will be listed with incomplete information.
+- **No caching**: Every `/guide` invocation rescans the filesystem. This is by design (always fresh) but means no persistent state between sessions.
+- **Plugin marketplace skills**: Scanning `~/.claude/plugins/` paths is supported but less thoroughly tested than user-level skills.
 
 ## Compatibility
 
-- Works with any Claude Code skills, regardless of their source
+- Works with any Claude Code skills that use standard SKILL.md format
 - Scans user-level (`~/.claude/`) and project-level (`.claude/`) skills
-- Compatible with plugin marketplace skills
+- Compatible with plugin marketplace skills (best-effort)
+- Shell-compatible: tested on both zsh (macOS default) and bash
 - No dependencies -- it's just two markdown files
 
 ## Uninstall
@@ -217,9 +228,9 @@ rm ~/.claude/commands/guide.md
 
 Contributions are welcome! Some ideas:
 
-- **Improve the scanning logic** -- handle edge cases in skill detection
-- **Add example outputs** -- screenshots or recordings of guide in different languages
-- **Test with more skill sets** -- report how guide works with different skill collections
+- **Test with different skill sets** -- report how guide works with your skills
+- **Edge cases** -- skills without frontmatter, unusual directory structures
+- **Screenshots** -- real output examples in different languages
 - **Translations** -- improve the README in your language
 
 ## License
