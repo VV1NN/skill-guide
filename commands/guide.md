@@ -149,6 +149,8 @@ done
 **Step 4: Check for API keys / environment variables** commonly needed:
 
 ```bash
+# Use bash explicitly for ${!var} indirect expansion (not supported in zsh)
+bash -c '
 for var in CHAOS_API_KEY SHODAN_API_KEY GITHUB_TOKEN ETHERSCAN_API_KEY; do
   if [ -n "${!var}" ]; then
     echo "ENV_OK|$var"
@@ -156,6 +158,7 @@ for var in CHAOS_API_KEY SHODAN_API_KEY GITHUB_TOKEN ETHERSCAN_API_KEY; do
     echo "ENV_MISSING|$var"
   fi
 done
+'
 ```
 
 **Step 5: Present results as a health report:**
