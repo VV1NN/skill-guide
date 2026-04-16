@@ -23,19 +23,21 @@ Based on the argument provided by the user (`$ARGUMENTS`):
 Use the Bash tool to scan the filesystem:
 
 ```bash
+# Use bash explicitly to avoid zsh glob no-match errors
+bash -c '
 # Scan user-level skills
 for f in ~/.claude/skills/*/SKILL.md; do
   [ -f "$f" ] || continue
-  name=$(grep '^name:' "$f" | head -1 | sed 's/name: *//')
-  desc=$(grep '^description:' "$f" | head -1 | sed 's/description: *//' | cut -c1-150)
+  name=$(grep "^name:" "$f" | head -1 | sed "s/name: *//")
+  desc=$(grep "^description:" "$f" | head -1 | sed "s/description: *//" | cut -c1-150)
   echo "SKILL|$name|$desc"
 done
 
 # Scan project-level skills
 for f in .claude/skills/*/SKILL.md; do
   [ -f "$f" ] || continue
-  name=$(grep '^name:' "$f" | head -1 | sed 's/name: *//')
-  desc=$(grep '^description:' "$f" | head -1 | sed 's/description: *//' | cut -c1-150)
+  name=$(grep "^name:" "$f" | head -1 | sed "s/name: *//")
+  desc=$(grep "^description:" "$f" | head -1 | sed "s/description: *//" | cut -c1-150)
   echo "SKILL|$name|$desc (project)"
 done
 
@@ -43,7 +45,7 @@ done
 for f in ~/.claude/commands/*.md; do
   [ -f "$f" ] || continue
   cmd=$(basename "$f" .md)
-  desc=$(grep '^description:' "$f" | head -1 | sed 's/description: *//' | cut -c1-150)
+  desc=$(grep "^description:" "$f" | head -1 | sed "s/description: *//" | cut -c1-150)
   echo "CMD|/$cmd|$desc"
 done
 
@@ -51,9 +53,10 @@ done
 for f in .claude/commands/*.md; do
   [ -f "$f" ] || continue
   cmd=$(basename "$f" .md)
-  desc=$(grep '^description:' "$f" | head -1 | sed 's/description: *//' | cut -c1-150)
+  desc=$(grep "^description:" "$f" | head -1 | sed "s/description: *//" | cut -c1-150)
   echo "CMD|/$cmd|$desc (project)"
 done
+'
 ```
 
 ## Step 3: Execute the selected mode
@@ -202,10 +205,11 @@ Compare the user's installed skills against a skill pack (a GitHub repo or known
 - If the argument is a local path, use it directly
 
 ```bash
-# Clone to temp if it's a GitHub reference
-if echo "$SOURCE" | grep -qE '(github\.com|^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$)'; then
+# Use bash explicitly to avoid zsh glob errors on no-match
+bash -c '
+SOURCE="$1"
+if echo "$SOURCE" | grep -qE "(github\.com|^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$)"; then
   REPO_URL="$SOURCE"
-  # Normalize to full URL if shorthand
   echo "$REPO_URL" | grep -q "github.com" || REPO_URL="https://github.com/$REPO_URL"
   TEMP_DIR=$(mktemp -d)
   git clone --depth 1 "$REPO_URL" "$TEMP_DIR/source-pack" 2>/dev/null
@@ -213,27 +217,34 @@ if echo "$SOURCE" | grep -qE '(github\.com|^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$)'; th
 else
   SOURCE_DIR="$SOURCE"
 fi
+echo "SOURCE_DIR|$SOURCE_DIR"
+echo "TEMP_DIR|$TEMP_DIR"
+' -- "$SOURCE"
 ```
 
 **Step 2: Scan the source for skills and commands.**
 
 ```bash
+# Use bash explicitly to avoid zsh glob no-match errors
+bash -c '
+SOURCE_DIR="$1"
+
 # Scan source skills
 for f in "$SOURCE_DIR"/skills/*/SKILL.md "$SOURCE_DIR"/*/SKILL.md "$SOURCE_DIR"/SKILL.md; do
   [ -f "$f" ] || continue
-  name=$(grep '^name:' "$f" | head -1 | sed 's/name: *//')
+  name=$(grep "^name:" "$f" | head -1 | sed "s/name: *//")
   echo "SOURCE_SKILL|$name"
 done
 
 # Scan source commands
 for f in "$SOURCE_DIR"/commands/*.md "$SOURCE_DIR"/*.md; do
   [ -f "$f" ] || continue
-  # Skip README and non-command files
-  basename "$f" | grep -qiE '^(readme|license|changelog|contributing)' && continue
+  basename "$f" | grep -qiE "^(readme|license|changelog|contributing)" && continue
   cmd=$(basename "$f" .md)
-  desc=$(grep '^description:' "$f" | head -1 | sed 's/description: *//' | cut -c1-100)
+  desc=$(grep "^description:" "$f" | head -1 | sed "s/description: *//" | cut -c1-100)
   [ -n "$desc" ] && echo "SOURCE_CMD|$cmd|$desc"
 done
+' -- "$SOURCE_DIR"
 ```
 
 **Step 3: Compare against installed skills and commands** (use the scan from Step 2 of the main flow).
