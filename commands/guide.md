@@ -1,5 +1,5 @@
 ---
-description: "Skill navigator -- explains all installed skills and slash commands in your language. Usage: /guide (overview), /guide <skill-name> (deep dive), /guide <what you want to do> (recommendation)"
+description: "Skill navigator -- explains all installed skills and slash commands in your language. Usage: /guide (overview), /guide <skill-name> (deep dive), /guide <what you want to do> (recommendation), /guide --check (dependency check), /guide --diff <repo-url> (compare with a skill pack)"
 ---
 
 # /guide -- Skill Navigator
@@ -13,6 +13,8 @@ You are a skill navigator helping the user understand their installed Claude Cod
 Based on the argument provided by the user (`$ARGUMENTS`):
 
 - **No arguments or empty** --> Run **Overview Mode**
+- **`--check`** --> Run **Dependency Check Mode**
+- **`--diff <repo-url-or-skill-pack-name>`** --> Run **Diff Mode**
 - **Argument matches an installed skill or command name** (e.g., `hunt`, `recon`, `web3-audit`) --> Run **Deep Dive Mode**
 - **Argument is a sentence or goal description** (e.g., "I want to test website security") --> Run **Recommendation Mode**
 
@@ -113,3 +115,154 @@ Parse the user's goal, then:
    - What you'll get from this step
 3. **Alternative approaches** -- If there are multiple valid paths
 4. **What you DON'T need** -- Which installed skills are NOT relevant (reduces overwhelm)
+
+---
+
+### Dependency Check Mode (`--check`)
+
+Check whether the user's environment has the tools and dependencies required by their installed skills.
+
+**Step 1: Scan all installed skills and read their full SKILL.md content.**
+
+**Step 2: Extract dependency signals from each skill.** Look for:
+- Tool names mentioned in the skill (e.g., `subfinder`, `httpx`, `nuclei`, `ffuf`, `katana`, `node`, `python3`, `go`, `foundry`, `forge`)
+- Commands referenced in code blocks (e.g., `subfinder -d`, `httpx -l`, `nuclei -t`)
+- Language runtimes mentioned (e.g., Python, Node.js, Go, Rust)
+- External services or API keys mentioned (e.g., `CHAOS_API_KEY`, `SHODAN_API_KEY`)
+
+**Step 3: Check which tools are actually installed** by running:
+
+```bash
+# For each tool found in skills, check if it exists
+for tool in subfinder httpx nuclei ffuf katana waybackurls gau dnsx nmap nikto sqlmap \
+            node python3 go forge cast solc foundryup pip3 npm cargo rustc \
+            git curl jq gh docker; do
+  if command -v "$tool" &>/dev/null; then
+    version=$("$tool" --version 2>/dev/null | head -1 || echo "installed")
+    echo "OK|$tool|$version"
+  else
+    echo "MISSING|$tool"
+  fi
+done
+```
+
+**Step 4: Check for API keys / environment variables** commonly needed:
+
+```bash
+for var in CHAOS_API_KEY SHODAN_API_KEY GITHUB_TOKEN ETHERSCAN_API_KEY; do
+  if [ -n "${!var}" ]; then
+    echo "ENV_OK|$var"
+  else
+    echo "ENV_MISSING|$var"
+  fi
+done
+```
+
+**Step 5: Present results as a health report:**
+
+```
+## Environment Health Check
+
+### Tools
+| Tool | Status | Required by |
+|------|--------|-------------|
+| subfinder | OK (v2.6.3) | web2-recon, /recon |
+| httpx | OK (v1.3.7) | web2-recon, /recon |
+| nuclei | MISSING | web2-recon, /recon |
+| forge | MISSING | web3-audit, /web3-audit |
+
+### Environment Variables
+| Variable | Status | Required by |
+|----------|--------|-------------|
+| CHAOS_API_KEY | OK | /recon |
+| SHODAN_API_KEY | MISSING | /recon (optional) |
+
+### Summary
+- X/Y tools installed
+- Z tools missing
+- A/B env vars configured
+
+### How to fix
+(Provide install commands for each missing tool, e.g.)
+- nuclei: `go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest`
+- forge: `curl -L https://foundry.paradigm.xyz | bash && foundryup`
+```
+
+---
+
+### Diff Mode (`--diff <source>`)
+
+Compare the user's installed skills against a skill pack (a GitHub repo or known skill collection) to show what's missing.
+
+**Step 1: Determine the source.**
+- If the argument is a GitHub URL (e.g., `https://github.com/user/repo`) or a `user/repo` shorthand, clone it to a temp directory
+- If the argument is a local path, use it directly
+
+```bash
+# Clone to temp if it's a GitHub reference
+if echo "$SOURCE" | grep -qE '(github\.com|^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$)'; then
+  REPO_URL="$SOURCE"
+  # Normalize to full URL if shorthand
+  echo "$REPO_URL" | grep -q "github.com" || REPO_URL="https://github.com/$REPO_URL"
+  TEMP_DIR=$(mktemp -d)
+  git clone --depth 1 "$REPO_URL" "$TEMP_DIR/source-pack" 2>/dev/null
+  SOURCE_DIR="$TEMP_DIR/source-pack"
+else
+  SOURCE_DIR="$SOURCE"
+fi
+```
+
+**Step 2: Scan the source for skills and commands.**
+
+```bash
+# Scan source skills
+for f in "$SOURCE_DIR"/skills/*/SKILL.md "$SOURCE_DIR"/*/SKILL.md "$SOURCE_DIR"/SKILL.md; do
+  [ -f "$f" ] || continue
+  name=$(grep '^name:' "$f" | head -1 | sed 's/name: *//')
+  echo "SOURCE_SKILL|$name"
+done
+
+# Scan source commands
+for f in "$SOURCE_DIR"/commands/*.md "$SOURCE_DIR"/*.md; do
+  [ -f "$f" ] || continue
+  # Skip README and non-command files
+  basename "$f" | grep -qiE '^(readme|license|changelog|contributing)' && continue
+  cmd=$(basename "$f" .md)
+  desc=$(grep '^description:' "$f" | head -1 | sed 's/description: *//' | cut -c1-100)
+  [ -n "$desc" ] && echo "SOURCE_CMD|$cmd|$desc"
+done
+```
+
+**Step 3: Compare against installed skills and commands** (use the scan from Step 2 of the main flow).
+
+**Step 4: Present a diff report:**
+
+```
+## Skill Diff: your environment vs <source>
+
+### Skills
+| Skill | In source | Installed | Status |
+|-------|-----------|-----------|--------|
+| bug-bounty | Yes | Yes | OK |
+| web2-recon | Yes | Yes | OK |
+| api-testing | Yes | No | MISSING |
+
+### Commands
+| Command | In source | Installed | Status |
+|---------|-----------|-----------|--------|
+| /hunt | Yes | Yes | OK |
+| /fuzz | Yes | No | MISSING |
+
+### Summary
+- You have X/Y skills from this pack
+- Missing Z skills, W commands
+
+### How to install missing items
+(Provide copy-paste commands to install each missing skill/command)
+```
+
+**Step 5: Clean up temp directory if created.**
+
+```bash
+[ -n "$TEMP_DIR" ] && rm -rf "$TEMP_DIR"
+```

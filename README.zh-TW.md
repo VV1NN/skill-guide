@@ -25,6 +25,8 @@
 | `/guide` | 掃描所有已安裝的 skills 和指令，分類列出並推薦使用順序 |
 | `/guide <名稱>` | 深入解釋某個特定 skill -- 用白話說明它做什麼、怎麼用、什麼時候該用 |
 | `/guide <你想做的事>` | 描述你的目標，取得一份使用你已安裝 skills 的步驟計劃 |
+| `/guide --check` | 檢查你的環境是否備齊所有 skills 需要的工具和 API |
+| `/guide --diff <repo>` | 比較你和某個 skill 套件（GitHub repo）的差異，看你還缺什麼 |
 
 ### 核心特色
 
@@ -112,6 +114,59 @@ Commands: 15 個可用（輸入 /指令名 觸發）
 前一步應該做：/recon、/surface
 下一步應該做：/validate、/report
 ...
+```
+
+### 環境檢查 -- 「我準備好了嗎？」
+
+```
+/guide --check
+```
+
+掃描你所有的 skills，找出它們需要哪些工具和 API，然後檢查你的系統：
+
+```
+## 環境健康檢查
+
+### 工具
+| 工具       | 狀態          | 哪些 skill 需要      |
+|------------|---------------|-----------------------|
+| subfinder  | OK (v2.6.3)   | web2-recon, /recon    |
+| httpx      | OK (v1.3.7)   | web2-recon, /recon    |
+| nuclei     | 缺少          | web2-recon, /recon    |
+| forge      | 缺少          | web3-audit            |
+
+### 環境變數
+| 變數            | 狀態  | 哪些 skill 需要    |
+|-----------------|-------|--------------------|
+| CHAOS_API_KEY   | OK    | /recon             |
+| SHODAN_API_KEY  | 缺少  | /recon（非必要）    |
+
+### 修復方式
+- nuclei: `go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest`
+- forge: `curl -L https://foundry.paradigm.xyz | bash && foundryup`
+```
+
+### 差異比較 -- 「我還缺什麼？」
+
+```
+/guide --diff user/awesome-bb-skills
+```
+
+比較你已安裝的 skills 和某個 GitHub repo（skill 套件）的差異：
+
+```
+## Skill 差異：你的環境 vs user/awesome-bb-skills
+
+| Skill        | 套件中有 | 你有安裝 | 狀態   |
+|--------------|---------|---------|--------|
+| bug-bounty   | 有      | 有      | OK     |
+| api-testing  | 有      | 沒有    | 缺少   |
+
+缺少 2 個 skills、1 個 command。
+
+### 安裝缺少的項目
+  mkdir -p ~/.claude/skills/api-testing
+  cp ...
 ```
 
 ### 推薦模式 -- 「我想做某件事」

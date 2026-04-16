@@ -24,6 +24,8 @@ The Claude Code skills ecosystem is booming -- there are hundreds of thousands o
 | `/guide` | Scans all installed skills & commands, shows a categorized overview with workflow recommendations |
 | `/guide <name>` | Deep dive into a specific skill -- explains what it does, when to use it, how to use it, with examples |
 | `/guide <goal>` | Describe what you want to do, get a step-by-step plan using your installed skills |
+| `/guide --check` | Scans your skills' dependencies and checks if the required tools/APIs are installed on your system |
+| `/guide --diff <repo>` | Compares your installed skills against a skill pack (GitHub repo) and shows what's missing |
 
 ### Key Features
 
@@ -107,6 +109,59 @@ How to use:
 What comes before: /recon, /surface
 What comes after: /validate, /report
 ...
+```
+
+### Dependency Check -- "Am I ready?"
+
+```
+/guide --check
+```
+
+Scans every skill you have installed, extracts the tools and APIs they depend on, and checks your system:
+
+```
+## Environment Health Check
+
+### Tools
+| Tool       | Status        | Required by           |
+|------------|---------------|-----------------------|
+| subfinder  | OK (v2.6.3)   | web2-recon, /recon    |
+| httpx      | OK (v1.3.7)   | web2-recon, /recon    |
+| nuclei     | MISSING       | web2-recon, /recon    |
+| forge      | MISSING       | web3-audit            |
+
+### Environment Variables
+| Variable        | Status  | Required by        |
+|-----------------|---------|---------------------|
+| CHAOS_API_KEY   | OK      | /recon              |
+| SHODAN_API_KEY  | MISSING | /recon (optional)   |
+
+### How to fix
+- nuclei: `go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest`
+- forge: `curl -L https://foundry.paradigm.xyz | bash && foundryup`
+```
+
+### Diff -- "Am I missing anything?"
+
+```
+/guide --diff user/awesome-bb-skills
+```
+
+Compares your installed skills against a GitHub repo (skill pack):
+
+```
+## Skill Diff: you vs user/awesome-bb-skills
+
+| Skill        | In source | Installed | Status  |
+|--------------|-----------|-----------|---------|
+| bug-bounty   | Yes       | Yes       | OK      |
+| api-testing  | Yes       | No        | MISSING |
+
+Missing 2 skills, 1 command.
+
+### Install missing
+  mkdir -p ~/.claude/skills/api-testing
+  cp ...
 ```
 
 ### Recommendation -- "I want to do X"

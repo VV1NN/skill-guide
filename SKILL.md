@@ -60,7 +60,23 @@ When the user asks about a specific skill or command:
 6. **Pairs well with** -- Which other skills/commands complement this one
 7. **Common mistakes** -- What beginners often get wrong
 
-### Mode 3: Recommendation (triggered by `/guide <goal description>`)
+### Mode 3: Dependency Check (triggered by `/guide --check`)
+
+Scan all installed skills, extract tool/runtime/API dependencies mentioned in their content, then check which are actually installed on the user's system. Present a health report with:
+
+1. **Tool status table** -- each tool, whether it's installed, which skills need it
+2. **Environment variables** -- API keys that skills reference
+3. **Fix instructions** -- copy-paste install commands for everything that's missing
+
+### Mode 4: Diff (triggered by `/guide --diff <source>`)
+
+Compare the user's installed skills against a skill pack (GitHub repo or local path). Show:
+
+1. **What you have** -- skills/commands that match
+2. **What you're missing** -- skills/commands in the source that you don't have
+3. **How to install** -- copy-paste commands to get the missing pieces
+
+### Mode 5: Recommendation (triggered by `/guide <goal description>`)
 
 When the user describes a goal (e.g., "I want to find vulnerabilities in a website"):
 
