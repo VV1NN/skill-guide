@@ -37,6 +37,7 @@ jobs:
   scorecard:
     name: OpenSSF Scorecard
     runs-on: ubuntu-latest
+    if: github.repository == 'VV1NN/skill-guide'
     permissions:
       security-events: write
       id-token: write
