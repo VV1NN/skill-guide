@@ -103,15 +103,34 @@ You should see a categorized overview of all your installed skills.
 /guide
 ```
 
-Returns a categorized map of all your skills and commands:
+Returns a skill-centric map -- each skill is a section with its related commands underneath:
 
 ```
-[Preparation] --> [Execution] --> [Validation] --> [Output]
+10 Skills (auto-loaded) | 15 Commands (type /command to use)
 
-Skills:  10 installed (auto-loaded)
-Commands: 15 available (type /command to use)
+### bug-bounty [SKILL]
+Complete vulnerability hunting knowledge base.
 
-...categorized table with descriptions...
+Related commands:
+  /scope target.com    -- confirm target is in scope
+  /hunt target.com     -- actively hunt for vulnerabilities
+  /chain               -- chain small bugs into bigger ones
+
+Suggested flow: /scope -> /hunt -> /chain
+
+### web2-recon [SKILL]
+Recon methodology for web targets.
+
+Related commands:
+  /recon target.com    -- run full recon pipeline
+  /surface target.com  -- rank attack surface
+
+Suggested flow: /recon -> /surface
+
+### General / Utilities
+  /guide               -- skill navigator (this)
+  /autopilot target.com -- fully automated workflow
+  ...
 ```
 
 ### Deep Dive -- "How does this work?"

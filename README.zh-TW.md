@@ -84,19 +84,34 @@ cp skill-guide/commands/guide.md ~/.claude/commands/guide.md
 /guide
 ```
 
-回傳分類整理過的技能地圖：
+回傳以 Skill 為中心的技能地圖 -- 每個 skill 下面列出相關的指令：
 
 ```
-[準備階段] --> [偵察階段] --> [狩獵階段] --> [驗證階段] --> [產出階段]
+10 個 Skills（自動載入）| 15 個 Commands（輸入 /指令名 觸發）
 
-Skills:  10 個已安裝（背景知識，自動載入）
-Commands: 15 個可用（輸入 /指令名 觸發）
+### bug-bounty [SKILL]
+完整漏洞挖掘知識庫。
 
-| 工具 | 做什麼 | 什麼時候用 |
-|------|--------|-----------|
-| /recon | 全面偵察目標 | 開始狩獵前 |
-| /hunt  | 主動找漏洞   | 偵察完成後 |
-| ...    | ...          | ...       |
+相關指令：
+  /scope target.com    -- 確認目標範圍
+  /hunt target.com     -- 主動找漏洞
+  /chain               -- 串接漏洞
+
+建議流程：/scope -> /hunt -> /chain
+
+### web2-recon [SKILL]
+偵察方法論。
+
+相關指令：
+  /recon target.com    -- 一鍵跑完整偵察
+  /surface target.com  -- 排序攻擊面
+
+建議流程：/recon -> /surface
+
+### General / Utilities
+  /guide               -- 技能導覽（就是這個）
+  /autopilot target.com -- 全自動一條龍
+  ...
 ```
 
 ### 深入解說 -- 「這個怎麼用？」
