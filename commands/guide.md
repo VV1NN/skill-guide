@@ -86,56 +86,83 @@ Present a complete guide with these sections:
 Explain clearly with a visual comparison box:
 
 ```
-+-------------------------------+-------------------------------+
-|  SKILLS (背景知識)              |  COMMANDS (動作指令)            |
-|  Auto-loaded, no action needed |  You type /command to trigger  |
-+-------------------------------+-------------------------------+
-|  Like a textbook on your desk  |  Like a tool you pick up       |
-|  Claude reads it when relevant |  You decide when to use it     |
-|  You do NOTHING to activate    |  You MUST type the command     |
-+-------------------------------+-------------------------------+
++-----------------------------------+-----------------------------------+
+|  SKILL (background knowledge)     |  CMD (action command)             |
+|  Auto-loaded, no action needed    |  You type /command to trigger     |
++-----------------------------------+-----------------------------------+
+|  Like a textbook on your desk     |  Like a tool you pick up          |
+|  Claude reads it when relevant    |  You decide when to use it        |
+|  You do NOTHING to activate       |  You MUST type the command        |
++-----------------------------------+-----------------------------------+
 ```
 
-Then list them separately:
+This explanation only needs to appear once here. In the rest of the output, just use `[SKILL]` and `[CMD]` as short tags -- no need to repeat "auto-loaded" on every item.
 
-**Your Skills (auto-loaded):**
-List each skill with a marker like `[SKILL]` prefix and one-line description.
+**C) Skill-Centric Map**
 
-**Your Commands (type to use):**
-List each command with the actual `/command` syntax and one-line description.
+IMPORTANT: Organize by SKILL, not by workflow phase. Each skill is a section header with related commands underneath. Do NOT hardcode a workflow -- the user may have skills from completely different domains.
 
-This separation is critical -- many users don't understand the difference. Make it visually impossible to confuse.
+For each installed skill:
 
-**C) Category Map**
+1. Show the skill name and a one-line description
+2. List all related commands underneath
+3. If the related commands have a natural order, show a mini workflow
+4. Commands not tied to any skill go under "General / Utilities" at the end
 
-IMPORTANT: Do NOT use a hardcoded workflow like "recon → hunt → validate → report". The user may have skills from completely different domains (security, accounting, design, DevOps, etc.).
+Format (keep `[SKILL]` short -- Section B already explained what it means):
 
-Instead, dynamically categorize based on what is actually installed:
+```
+---
+### skill-name [SKILL]
+One-line description.
 
-1. Read the name and description of every scanned skill and command
-2. Group them into natural categories based on their actual purpose (e.g., "Security / Bug Bounty", "Finance / Accounting", "Development Tools", "Writing / Documentation", etc.)
-3. If skills within a category have a natural workflow order, show it with arrows
-4. If they don't have a sequential relationship, just list them as a group
+Related commands:
+  /command1 <args>   -- what it does
+  /command2 <args>   -- what it does
 
-For each category, use this format for EVERY item:
-- `[SKILL] skill-name` — description (auto-loaded, you do nothing)
-- `[CMD] /command-name` — description (you type this to trigger)
-
-Never list a skill or command without its `[SKILL]` or `[CMD]` prefix.
+Suggested flow: /command1 -> /command2
+---
+```
 
 Example with mixed domains:
+
 ```
-## Security / Bug Bounty
-[Preparation] → [Recon] → [Hunting] → [Validation] → [Reporting]
-...items...
+---
+### bug-bounty [SKILL]
+Complete vulnerability hunting knowledge base.
 
-## Accounting
-[CMD] /invoice-scan — ...
-[SKILL] tax-rules — ...
+Related commands:
+  /scope target.com    -- confirm target is in scope
+  /intel target.com    -- gather intel on target
+  /hunt target.com     -- actively hunt for vulnerabilities
+  /chain               -- chain small bugs into bigger ones
 
-## Development Tools
-[CMD] /lint — ...
-[SKILL] code-review — ...
+Suggested flow: /scope -> /intel -> /hunt -> /chain
+---
+
+### web2-recon [SKILL]
+Recon methodology for web targets.
+
+Related commands:
+  /recon target.com    -- run full recon pipeline
+  /surface target.com  -- rank attack surface from recon output
+
+Suggested flow: /recon -> /surface
+---
+
+### invoice-organizer [SKILL]
+Automatically organizes invoices for tax prep.
+
+Related commands:
+  /invoice-scan ./receipts -- scan and organize invoice files
+---
+
+### General / Utilities
+  /guide               -- skill navigator (this)
+  /autopilot target.com -- fully automated workflow
+  /remember            -- log a finding to memory
+  /resume target.com   -- continue a previous session
+---
 ```
 
 **D) Complete Command Reference**
